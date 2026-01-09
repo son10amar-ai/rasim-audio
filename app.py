@@ -15,18 +15,18 @@ def index():
         url = request.form.get('video_url')
         if url:
             try:
-                # إعدادات جلب أفضل جودة صوت متاحة فقط
+                # إعدادات متقدمة لتخطي حماية يوتيوب وتحسين السرعة
                 ydl_opts = {
                     'format': 'bestaudio/best',
                     'quiet': True,
                     'no_warnings': True,
+                    'nocheckcertificate': True,
                     'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 }
                 
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                     info = ydl.extract_info(url, download=False)
                     
-                    # استخراج رابط الصوت المباشر وعنوان المقطع
                     audio_url = info.get('url')
                     title = info.get('title', 'Rasim_Audio')
                     thumbnail = info.get('thumbnail')
@@ -39,8 +39,9 @@ def index():
                     
             except Exception as e:
                 print(f"Error: {e}")
-                error = "عذراً، تعذر معالجة الرابط. تأكد من أنه رابط يوتيوب صحيح."
+                error = "عذراً، تعذر معالجة الرابط. يوتيوب يفرض قيوداً حالياً، جرب رابطاً آخر."
             
+    # تأكد أن الملف في GitHub اسمه station.html داخل مجلد templates
     return render_template('station.html', data=audio_data, error=error)
 
 @app.route('/download_mp3')
@@ -48,15 +49,15 @@ def download_mp3():
     target_url = request.args.get('url')
     filename = request.args.get('name', 'audio')
     
-    # طلب الملف من المصدر
-    req = requests.get(target_url, stream=True, timeout=20)
+    # جلب الملف كبث مباشر لتوفير الذاكرة
+    req = requests.get(target_url, stream=True, timeout=30)
     
     def generate():
-        for chunk in req.iter_content(chunk_size=1024 * 32):
+        for chunk in req.iter_content(chunk_size=1024 * 64):
             if chunk:
                 yield chunk
 
-    # ترميز الاسم لدعم العربية بشكل كامل
+    # دعم الأسماء العربية في التحميل
     safe_filename = quote(f"{filename}.mp3")
 
     return Response(
@@ -69,5 +70,7 @@ def download_mp3():
     )
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
-                    
+    # ضبط المنفذ ليتوافق مع Render
+    port = int(os.environ.get('PORT', 10000))
+    app.run(host='0.0.0.0', port=port)
+    
