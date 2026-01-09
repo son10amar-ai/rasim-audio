@@ -11,24 +11,18 @@ def index():
 @app.route('/download', methods=['POST'])
 def download():
     url = request.form.get('url')
-    if not url: return "رابط غير صحيح"
-    
-    # مجلد التحميل المؤقت
-    out_dir = '/tmp'
+    if not url: return "رابط مفقود"
     
     ydl_opts = {
         'format': 'bestaudio/best',
-        'outtmpl': f'{out_dir}/%(title)s.%(ext)s',
+        'outtmpl': '/tmp/%(title)s.%(ext)s',
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
             'preferredquality': '192',
         }],
         'quiet': True,
-        # هذه الإعدادات لتجاوز حظر يوتيوب في Render
-        'nocheckcertificate': True,
-        'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
-        'referer': 'https://www.google.com/'
+        'nocheckcertificate': True
     }
 
     try:
@@ -37,8 +31,7 @@ def download():
             path = ydl.prepare_filename(info).replace('.webm', '.mp3').replace('.m4a', '.mp3')
             return send_file(path, as_attachment=True)
     except Exception as e:
-        return f"خطأ: يوتيوب يرفض الطلب حالياً. جرب رابطاً آخر أو انتظر قليلاً."
+        return f"خطأ من يوتيوب: {str(e)}"
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
-    
