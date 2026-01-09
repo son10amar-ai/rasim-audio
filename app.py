@@ -15,7 +15,7 @@ def index():
         url = request.form.get('video_url')
         if url:
             try:
-                # إعدادات متقدمة لتجاوز حظر يوتيوب في سيرفرات Render
+                # إعدادات قوية لتجاوز حظر السيرفرات
                 ydl_opts = {
                     'format': 'bestaudio/best',
                     'quiet': True,
@@ -32,7 +32,8 @@ def index():
                         'audio_link': info.get('url')
                     }
             except Exception as e:
-                error = "عذراً، يوتيوب يمنع الوصول حالياً. جرب رابطاً آخر بعد قليل."
+                print(f"Error: {e}")
+                error = "عذراً، يوتيوب يفرض قيوداً على هذا الرابط، جرب رابطاً آخر."
             
     return render_template('station.html', data=audio_data, error=error)
 
@@ -40,13 +41,17 @@ def index():
 def download_mp3():
     target_url = request.args.get('url')
     filename = request.args.get('name', 'audio')
+    
+    # جلب الملف كبث مباشر لتوفير الذاكرة وتجنب التعليق
     req = requests.get(target_url, stream=True, timeout=30)
     
     def generate():
         for chunk in req.iter_content(chunk_size=1024 * 64):
-            if chunk: yield chunk
+            if chunk:
+                yield chunk
 
     safe_filename = quote(f"{filename}.mp3")
+
     return Response(
         stream_with_context(generate()),
         headers={
