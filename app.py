@@ -13,7 +13,7 @@ def index():
         url = request.form.get('video_url')
         if url:
             try:
-                # إعدادات لجلب رابط "googlevideo" المباشر
+                # إعدادات متقدمة لجلب رابط googlevideo المباشر كما في صورتك
                 ydl_opts = {
                     'format': 'bestaudio/best',
                     'quiet': True,
@@ -25,15 +25,15 @@ def index():
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                     info = ydl.extract_info(url, download=False)
                     
-                    # نرسل الرابط المباشر للمتصفح ليفتحه كما في صورتك
+                    # نرسل الرابط المباشر للمتصفح ليفتحه كما في صورتك رقم 1000036363
                     audio_data = {
                         'title': info.get('title', 'Rasim_Audio'),
                         'thumbnail': info.get('thumbnail'),
-                        'audio_link': info.get('url') # هذا هو رابط googlevideo
+                        'audio_link': info.get('url') 
                     }
                     
             except Exception as e:
-                error = "عذراً، الرابط محمي. جرب فيديو آخر."
+                error = "عذراً، يوتيوب يمنع الوصول حالياً. جرب رابطاً آخر."
             
     return render_template('station.html', data=audio_data, error=error)
 
